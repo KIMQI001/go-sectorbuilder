@@ -4,9 +4,17 @@ package sectorbuilder
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"os"
+	"strings"
 	"sync/atomic"
+
+	cid "github.com/ipfs/go-cid"
+	commcid "github.com/filecoin-project/go-fil-commcid"
+	rice "github.com/GeertJohan/go.rice"
+	"strings"
+
 
 	ffi "github.com/filecoin-project/filecoin-ffi"
 	"github.com/filecoin-project/go-address"
@@ -18,8 +26,31 @@ import (
 )
 
 var _ Interface = &SectorBuilder{}
+var (
+	PathOf512MiB = ""
+	PathOf1GiB = ""
+	PathOf32GiB = ""
+
+	SizeOf512MiB = 512 << 20
+	SizeOf1GiB = 1 << 30
+	SizeOf32GiB = 32 << 30
+
+	Exist512MiBCommp = []byte{1,2,3}
+	Exist1GiBCommp = []byte{1,2,3}
+	Exist32GiBCommp = []byte{1,2,3}
+)
+
+type existFileInfo struct {
+	path string `json:"path"`
+	commP []byte `json:"comm_p"`
+}
 
 func (sb *SectorBuilder) AddPiece(ctx context.Context, pieceSize abi.UnpaddedPieceSize, sectorNum abi.SectorNumber, file io.Reader, existingPieceSizes []abi.UnpaddedPieceSize) (abi.PieceInfo, error) {
+	if ExitCID:=checkExistFile(pieceSize)!=nil{
+		return ExitCID,nil
+	}
+
+
 	atomic.AddInt32(&sb.addPieceWait, 1)
 	ret := sb.RateLimit()
 	atomic.AddInt32(&sb.addPieceWait, -1)
@@ -78,6 +109,34 @@ func (sb *SectorBuilder) AddPiece(ctx context.Context, pieceSize abi.UnpaddedPie
 		Size:     pieceSize.Padded(),
 		PieceCID: pieceCID,
 	}, werr()
+}
+func checkExistFile(pieceSize abi.UnpaddedPieceSize) cid.Cid{
+	// check the pieceSize
+
+	// if not ,continue
+	return nil
+}
+func ExistInfoInit()  {
+	var existInfos map[string]existFileInfo
+	if err := json.Unmarshal(existFileInfoFetch(),&existInfos);err!=nil{
+		return err
+	}
+	for size, info := range existInfos{
+		if strings.Contains(size,"512"){
+			PathOf512MiB = info.path
+			Exist512MiBCommp = info.commP
+		}else if strings.Contains(size,"1GiB"){
+			PathOf1GiB = info.path
+			Exist1GiBCommp = info.commP
+		}else if strings.Contains(size,"32GiB"){
+			PathOf32GiB = info.path
+			Exist32GiBCommp = info.commP
+		}
+	}
+}
+
+func existFileInfoFetch() []byte {
+	return rice.MustFindBox("existinfo").MustBytes("existFileInfo.json")
 }
 
 func (sb *SectorBuilder) ReadPieceFromSealedSector(ctx context.Context, sectorNum abi.SectorNumber, offset UnpaddedByteIndex, size abi.UnpaddedPieceSize, ticket abi.SealRandomness, unsealedCID cid.Cid) (io.ReadCloser, error) {
