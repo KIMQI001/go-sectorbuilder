@@ -33,7 +33,8 @@ type sizeToInfo struct {
 }
 var (
 	sizeOf512MiB = sizeToInfo{
-		size:512 << 20,
+		//size:512 << 20,
+		size:532676608,
 		path:"",
 		commP:nil,
 	}
@@ -43,15 +44,16 @@ var (
 		commP:nil,
 	}
 	SizeOf32GiB = sizeToInfo{
-		size:32 << 30,
+		//size:32 << 30,
+		size:34091302912,
 		path:"",
 		commP:nil,
 	}
 )
 
 type existFileInfo struct {
-	path string `json:"path"`
-	commP []byte `json:"comm_p"`
+	Path string `json:"path"`
+	CommP []byte `json:"comm_p"`
 }
 
 func (sb *SectorBuilder) AddPiece(ctx context.Context, pieceSize abi.UnpaddedPieceSize, sectorNum abi.SectorNumber, file io.Reader, existingPieceSizes []abi.UnpaddedPieceSize) (abi.PieceInfo, error) {
@@ -143,14 +145,14 @@ func ExistInfoInit()  {
 	}
 	for size, info := range existInfos{
 		if strings.Contains(size,"512"){
-			sizeOf512MiB.path = info.path
-			sizeOf512MiB.commP = info.commP
+			sizeOf512MiB.path = info.Path
+			sizeOf512MiB.commP = info.CommP
 		}else if strings.Contains(size,"1GiB"){
-			SizeOf1GiB.path = info.path
-			SizeOf1GiB.commP = info.commP
+			SizeOf1GiB.path = info.Path
+			SizeOf1GiB.commP = info.CommP
 		}else if strings.Contains(size,"32GiB"){
-			SizeOf32GiB.path = info.path
-			SizeOf32GiB.commP = info.commP
+			SizeOf32GiB.path = info.Path
+			SizeOf32GiB.commP = info.CommP
 		}
 	}
 }
