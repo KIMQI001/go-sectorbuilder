@@ -11,15 +11,14 @@ import (
 	"sync/atomic"
 
 	cid "github.com/ipfs/go-cid"
-	commcid "github.com/filecoin-project/go-fil-commcid"
+	//commcid "github.com/filecoin-project/go-fil-commcid"
 	rice "github.com/GeertJohan/go.rice"
-	"strings"
 
 
 	ffi "github.com/filecoin-project/filecoin-ffi"
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/specs-actors/actors/abi"
-	"github.com/ipfs/go-cid"
+
 	"golang.org/x/xerrors"
 
 	"github.com/filecoin-project/go-sectorbuilder/fs"

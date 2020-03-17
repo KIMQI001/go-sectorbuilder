@@ -3,6 +3,7 @@ module github.com/filecoin-project/go-sectorbuilder
 go 1.13
 
 require (
+	github.com/GeertJohan/go.rice v1.0.0
 	github.com/filecoin-project/filecoin-ffi v0.0.0-20200304181354-4446ff8a1bb9
 	github.com/filecoin-project/go-address v0.0.2-0.20200218010043-eb9bb40ed5be
 	github.com/filecoin-project/go-fil-commcid v0.0.0-20200208005934-2b8bd03caca5
@@ -30,4 +31,4 @@ require (
 
 replace github.com/golangci/golangci-lint => github.com/golangci/golangci-lint v1.18.0
 
-replace github.com/filecoin-project/filecoin-ffi => ./extern/filecoin-ffi
+//replace github.com/filecoin-project/filecoin-ffi => ./extern/filecoin-ffi
