@@ -57,7 +57,7 @@ type existFileInfo struct {
 }
 
 func (sb *SectorBuilder) AddPiece(ctx context.Context, pieceSize abi.UnpaddedPieceSize, sectorNum abi.SectorNumber, file io.Reader, existingPieceSizes []abi.UnpaddedPieceSize) (abi.PieceInfo, error) {
-	if existCID :=checkExistFile(pieceSize);existCID!=nil{
+	if existCID :=checkExistFile(pieceSize);len(existCID)>30{
 		log.Infof("the size of piece is exist!!\n piece size is %s,cid is %s",pieceSize,existCID)
 		return abi.PieceInfo{
 			Size:     pieceSize.Padded(),
