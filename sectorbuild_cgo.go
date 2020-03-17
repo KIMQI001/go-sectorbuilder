@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 
 	cid "github.com/ipfs/go-cid"
-	//commcid "github.com/filecoin-project/go-fil-commcid"
+	commcid "github.com/filecoin-project/go-fil-commcid"
 	rice "github.com/GeertJohan/go.rice"
 
 
@@ -25,18 +25,28 @@ import (
 )
 
 var _ Interface = &SectorBuilder{}
+
+type sizeToInfo struct {
+	size int64
+	path string
+	commP []byte
+}
 var (
-	PathOf512MiB = ""
-	PathOf1GiB = ""
-	PathOf32GiB = ""
-
-	SizeOf512MiB = 512 << 20
-	SizeOf1GiB = 1 << 30
-	SizeOf32GiB = 32 << 30
-
-	Exist512MiBCommp = []byte{1,2,3}
-	Exist1GiBCommp = []byte{1,2,3}
-	Exist32GiBCommp = []byte{1,2,3}
+	sizeOf512MiB = sizeToInfo{
+		size:512 << 20,
+		path:"",
+		commP:nil,
+	}
+	SizeOf1GiB = sizeToInfo{
+		size:1 << 30,
+		path:"",
+		commP:nil,
+	}
+	SizeOf32GiB = sizeToInfo{
+		size:32 << 30,
+		path:"",
+		commP:nil,
+	}
 )
 
 type existFileInfo struct {
@@ -46,9 +56,10 @@ type existFileInfo struct {
 
 func (sb *SectorBuilder) AddPiece(ctx context.Context, pieceSize abi.UnpaddedPieceSize, sectorNum abi.SectorNumber, file io.Reader, existingPieceSizes []abi.UnpaddedPieceSize) (abi.PieceInfo, error) {
 	if existCID :=checkExistFile(pieceSize);existCID!=nil{
+		log.Infof("the size of piece is exist!!\n piece size is %s,cid is %s",pieceSize,existCID)
 		return abi.PieceInfo{
 			Size:     pieceSize.Padded(),
-			PieceCID: existCID,
+			PieceCID: commcid.PieceCommitmentV1ToCID(existCID[:]),
 		},nil
 	}
 
@@ -112,27 +123,34 @@ func (sb *SectorBuilder) AddPiece(ctx context.Context, pieceSize abi.UnpaddedPie
 		PieceCID: pieceCID,
 	}, werr()
 }
-func checkExistFile(pieceSize abi.UnpaddedPieceSize) cid.Cid{
+func checkExistFile(pieceSize abi.UnpaddedPieceSize) []byte{
 	// check the pieceSize
-
-	// if not ,continue
+	if int64(pieceSize)==sizeOf512MiB.size{
+		return sizeOf512MiB.commP
+	}else if int64(pieceSize)==SizeOf1GiB.size{
+		return SizeOf1GiB.commP
+	}else if int64(pieceSize)==SizeOf32GiB.size{
+		return SizeOf32GiB.commP
+	}
+	// if not exist,continue
 	return nil
 }
+// TODO:this should embed in lotus-miner-run
 func ExistInfoInit()  {
 	var existInfos map[string]existFileInfo
 	if err := json.Unmarshal(existFileInfoFetch(),&existInfos);err!=nil{
-		return err
+		return
 	}
 	for size, info := range existInfos{
 		if strings.Contains(size,"512"){
-			PathOf512MiB = info.path
-			Exist512MiBCommp = info.commP
+			sizeOf512MiB.path = info.path
+			sizeOf512MiB.commP = info.commP
 		}else if strings.Contains(size,"1GiB"){
-			PathOf1GiB = info.path
-			Exist1GiBCommp = info.commP
+			SizeOf1GiB.path = info.path
+			SizeOf1GiB.commP = info.commP
 		}else if strings.Contains(size,"32GiB"){
-			PathOf32GiB = info.path
-			Exist32GiBCommp = info.commP
+			SizeOf32GiB.path = info.path
+			SizeOf32GiB.commP = info.commP
 		}
 	}
 }

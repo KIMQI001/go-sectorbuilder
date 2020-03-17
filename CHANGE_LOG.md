@@ -7,4 +7,5 @@
  1.无wirte_ali的算法程序执行过程
  2.无staging文件存在，只有sealed文件存在
  3.sealed文件生成为去指定地方复制
+ 4.预置信息于existinfo下的json文件
 ```
